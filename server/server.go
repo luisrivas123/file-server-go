@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"io"
+	"net"
 	"os"
 	"strconv"
 )
@@ -129,8 +129,8 @@ func startServerMode() {
 		go manager.receive(client)
 		go manager.send(client)
 		//
-		fmt.Println("Client connected")
-		go sendFileToClient(connection)
+		// fmt.Println("Client connected")
+		// go sendFileToClient(connection)
 	}
 }
 

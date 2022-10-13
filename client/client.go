@@ -2,14 +2,14 @@ package main
 
 import (
 	"bufio"
-	"io"
 	"flag"
 	"fmt"
+	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
-	"path/filepath"
 )
 
 const BUFFERSIZE = 1024
@@ -54,26 +54,26 @@ func sendClientMode() {
 }
 
 func receiveClientMode() {
-	// fmt.Println("Starting client recieve...")
-	// connection, error := net.Dial("tcp", "localhost:3000")
-	// if error != nil {
-	// 	fmt.Println(error)
-	// }
-	// client := &Client{socket: connection}
-	// go client.receive()
-	go receiveFile()
+	fmt.Println("Starting client recieve...")
+	connection, error := net.Dial("tcp", "localhost:3000")
+	if error != nil {
+		fmt.Println(error)
+	}
+	client := &Client{socket: connection}
+	go client.receive()
+	// go receiveFile(connection)
 
 	var input string
 	fmt.Scanln(&input)
 
 }
 
-func receiveFile() {
-	connection, err := net.Dial("tcp", "localhost:3000")
-	if err != nil {
-		panic(err)
-	}
-	defer connection.Close()
+func receiveFile(connection net.Conn) {
+	// connection, err := net.Dial("tcp", "localhost:3000")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer connection.Close()
 	fmt.Println("Connected to server, start receiving the file name and file size")
 	bufferFileName := make([]byte, 64)
 	bufferFileSize := make([]byte, 10)
