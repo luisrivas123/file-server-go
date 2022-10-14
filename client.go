@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,6 +14,11 @@ import (
 )
 
 const BUFFERSIZE = 1024
+
+type Client struct {
+	socket net.Conn
+	data   chan []byte
+}
 
 func NewReceiveCommand() *ReceiveCommand {
 	gc := &ReceiveCommand{
@@ -63,32 +69,29 @@ func (g *SendCommand) Init(args []string) error {
 }
 
 func (g *ReceiveCommand) Run() error {
-	// fmt.Println("Hello", g.channel, "!")
-	// fmt.Println("Init app")
-	// // Se conecta al server
-
-	// serverCnn, err := net.Dial("tcp", ":8080")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // escuchar
-	// readMessages(serverCnn)
 	if g.channel == "1" {
-		fmt.Println("Hello", g.channel, "!")
-		fmt.Println("Init app")
-		// Se conecta al server
+		// fmt.Println("Hello", g.channel, "!")
+		fmt.Println("Starting client recieve...")
+		connection, error := net.Dial("tcp", "localhost:3000")
+		if error != nil {
+			fmt.Println(error)
+		}
+		client := &Client{socket: connection}
+		go client.receive()
+		// go receiveFile(connection)
 
-		serverCnn, err := net.Dial("tcp", ":8080")
+		var input string
+		fmt.Scanln(&input)
+	}
+	if g.channel == "2" {
+		connection, err := net.Dial("tcp", "localhost:3000")
 		if err != nil {
 			panic(err)
 		}
+		defer connection.Close()
 
-		// escuchar
-		readMessages(serverCnn)
-	}
-	if g.channel == "2" {
-		go receiveFile()
+		client := &Client{socket: connection}
+		go client.receive()
 
 		var input string
 		fmt.Scanln(&input)
@@ -99,13 +102,16 @@ func (g *ReceiveCommand) Run() error {
 }
 
 func (g *SendCommand) Run() error {
-	connection, err := net.Dial("tcp", ":8080")
-	if err != nil {
-		fmt.Println(err)
-		// Rompemos el ciclo
+	fmt.Println("Starting client send...")
+	connection, error := net.Dial("tcp", "localhost:3000")
+	if error != nil {
+		fmt.Println(error)
 	}
-	connection.Write([]byte("Hola mundo"))
-	connection.Close()
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		message, _ := reader.ReadString('\n')
+		connection.Write([]byte(strings.TrimRight(message, "\n")))
+	}
 	return nil
 }
 
@@ -146,33 +152,35 @@ func main() {
 
 }
 
-func readMessages(cnn net.Conn) {
-	// read message
-	var message = make([]byte, 2048)
-
-	_, err := cnn.Read(message)
-	if err != nil {
-		panic(err)
+func (client *Client) receive() {
+	for {
+		message := make([]byte, 4096)
+		length, err := client.socket.Read(message)
+		receiveFile(client.socket)
+		if err != nil {
+			client.socket.Close()
+			break
+		}
+		if length > 0 {
+			fmt.Println("RECEIVED: " + string(message))
+		}
 	}
-
-	// print message
-	fmt.Println("El mensaje del servidor es: ", string(message))
 }
 
-func receiveFile() {
-	connection, err := net.Dial("tcp", "localhost:3000")
-	if err != nil {
-		panic(err)
-	}
-	defer connection.Close()
+func receiveFile(con net.Conn) {
+	// connection, err := net.Dial("tcp", "localhost:3000")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer connection.Close()
 	fmt.Println("Connected to server, start receiving the file name and file size")
 	bufferFileName := make([]byte, 64)
 	bufferFileSize := make([]byte, 10)
 
-	connection.Read(bufferFileSize)
+	con.Read(bufferFileSize)
 	fileSize, _ := strconv.ParseInt(strings.Trim(string(bufferFileSize), ":"), 10, 64)
 
-	connection.Read(bufferFileName)
+	con.Read(bufferFileName)
 	fileName := strings.Trim(string(bufferFileName), ":")
 	path := filepath.Join("./file/", fileName)
 	newFile, err := os.Create(path)
@@ -185,11 +193,11 @@ func receiveFile() {
 
 	for {
 		if (fileSize - receivedBytes) < BUFFERSIZE {
-			io.CopyN(newFile, connection, (fileSize - receivedBytes))
-			connection.Read(make([]byte, (receivedBytes+BUFFERSIZE)-fileSize))
+			io.CopyN(newFile, con, (fileSize - receivedBytes))
+			con.Read(make([]byte, (receivedBytes+BUFFERSIZE)-fileSize))
 			break
 		}
-		io.CopyN(newFile, connection, BUFFERSIZE)
+		io.CopyN(newFile, con, BUFFERSIZE)
 		receivedBytes += BUFFERSIZE
 	}
 	fmt.Println("Received file completely!")

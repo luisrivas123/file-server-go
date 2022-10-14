@@ -24,7 +24,7 @@ type Client struct {
 
 func sendFileToClient(connection net.Conn) {
 	fmt.Println("A client has connected!")
-	defer connection.Close()
+	// defer connection.Close()
 	file, err := os.Open("./file/6.png")
 	if err != nil {
 		fmt.Println(err)
@@ -92,6 +92,7 @@ func (manager *ClientManager) start() {
 
 func (manager *ClientManager) receive(client *Client) {
 	for {
+		// go sendFileToClient(client.socket)
 		message := make([]byte, 4096)
 		length, err := client.socket.Read(message)
 		if err != nil {
@@ -115,6 +116,8 @@ func (manager *ClientManager) send(client *Client) {
 				return
 			}
 			client.socket.Write(message)
+			fmt.Println("Client connected")
+			go sendFileToClient(client.socket)
 		}
 	}
 }
@@ -140,11 +143,11 @@ func startServerMode() {
 		client := &Client{socket: connection, data: make(chan []byte)}
 		manager.register <- client
 
-		// go manager.receive(client)
-		// go manager.send(client)
+		go manager.receive(client)
+		go manager.send(client)
 		//
-		fmt.Println("Client connected")
-		go sendFileToClient(connection)
+		// fmt.Println("Client connected")
+		// go sendFileToClient(connection)
 	}
 }
 
