@@ -106,6 +106,19 @@ func (manager *ClientManager) receive(client *Client) {
 	}
 }
 
+func (manager *ClientManager) send(client *Client) {
+	defer client.socket.Close()
+	for {
+		select {
+		case message, ok := <-client.data:
+			if !ok {
+				return
+			}
+			client.socket.Write(message)
+		}
+	}
+}
+
 func startServerMode() {
 	fmt.Println("Starting server...")
 	listener, error := net.Listen("tcp", ":3000")
@@ -126,24 +139,12 @@ func startServerMode() {
 		}
 		client := &Client{socket: connection, data: make(chan []byte)}
 		manager.register <- client
-		go manager.receive(client)
-		go manager.send(client)
-		//
-		// fmt.Println("Client connected")
-		// go sendFileToClient(connection)
-	}
-}
 
-func (manager *ClientManager) send(client *Client) {
-	defer client.socket.Close()
-	for {
-		select {
-		case message, ok := <-client.data:
-			if !ok {
-				return
-			}
-			client.socket.Write(message)
-		}
+		// go manager.receive(client)
+		// go manager.send(client)
+		//
+		fmt.Println("Client connected")
+		go sendFileToClient(connection)
 	}
 }
 

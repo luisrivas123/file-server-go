@@ -59,9 +59,9 @@ func receiveClientMode() {
 	if error != nil {
 		fmt.Println(error)
 	}
-	client := &Client{socket: connection}
-	go client.receive()
-	// go receiveFile(connection)
+	// client := &Client{socket: connection}
+	// go client.receive()
+	go receiveFile(connection)
 
 	var input string
 	fmt.Scanln(&input)
