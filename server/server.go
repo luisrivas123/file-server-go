@@ -22,10 +22,11 @@ type Client struct {
 	data   chan []byte
 }
 
-func sendFileToClient(connection net.Conn) {
+func sendFileToClient(connection net.Conn, word string) {
 	fmt.Println("A client has connected!")
+	fmt.Println("File send: ", word)
 	// defer connection.Close()
-	file, err := os.Open("./file/6.png")
+	file, err := os.Open("6.png")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -109,6 +110,7 @@ func (manager *ClientManager) receive(client *Client) {
 
 func (manager *ClientManager) send(client *Client) {
 	defer client.socket.Close()
+
 	for {
 		select {
 		case message, ok := <-client.data:
@@ -117,7 +119,7 @@ func (manager *ClientManager) send(client *Client) {
 			}
 			client.socket.Write(message)
 			fmt.Println("Client connected")
-			go sendFileToClient(client.socket)
+			go sendFileToClient(client.socket, string(message))
 		}
 	}
 }
