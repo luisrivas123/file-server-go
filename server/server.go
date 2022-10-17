@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io"
+	// "io"
 	"net"
-	"os"
-	"strconv"
+	// "os"
+	// "strconv"
 )
-
-const BUFFERSIZE = 1024
 
 type ClientManager struct {
 	clients    map[*Client]bool
@@ -20,50 +18,6 @@ type ClientManager struct {
 type Client struct {
 	socket net.Conn
 	data   chan []byte
-}
-
-func sendFileToClient(connection net.Conn, word string) {
-	fmt.Println("A client has connected!")
-	fmt.Println("File send: ", word)
-	// defer connection.Close()
-	file, err := os.Open("6.png")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fileInfo, err := file.Stat()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fileSize := fillString(strconv.FormatInt(fileInfo.Size(), 10), 10)
-	fileName := fillString(fileInfo.Name(), 64)
-	fmt.Println("Sending filename and filesize!")
-	connection.Write([]byte(fileSize))
-	connection.Write([]byte(fileName))
-	sendBuffer := make([]byte, BUFFERSIZE)
-	fmt.Println("Start sending file!")
-	for {
-		_, err = file.Read(sendBuffer)
-		if err == io.EOF {
-			break
-		}
-		connection.Write(sendBuffer)
-	}
-	fmt.Println("File has been sent, closing connection!")
-	return
-}
-
-func fillString(retunString string, toLength int) string {
-	for {
-		lengtString := len(retunString)
-		if lengtString < toLength {
-			retunString = retunString + ":"
-			continue
-		}
-		break
-	}
-	return retunString
 }
 
 func (manager *ClientManager) start() {
@@ -93,7 +47,6 @@ func (manager *ClientManager) start() {
 
 func (manager *ClientManager) receive(client *Client) {
 	for {
-		// go sendFileToClient(client.socket)
 		message := make([]byte, 4096)
 		length, err := client.socket.Read(message)
 		if err != nil {
@@ -110,7 +63,6 @@ func (manager *ClientManager) receive(client *Client) {
 
 func (manager *ClientManager) send(client *Client) {
 	defer client.socket.Close()
-
 	for {
 		select {
 		case message, ok := <-client.data:
@@ -118,8 +70,6 @@ func (manager *ClientManager) send(client *Client) {
 				return
 			}
 			client.socket.Write(message)
-			fmt.Println("Client connected")
-			go sendFileToClient(client.socket, string(message))
 		}
 	}
 }
@@ -147,9 +97,6 @@ func startServerMode() {
 
 		go manager.receive(client)
 		go manager.send(client)
-		//
-		// fmt.Println("Client connected")
-		// go sendFileToClient(connection)
 	}
 }
 

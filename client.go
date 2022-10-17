@@ -5,15 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io"
+	// "io"
 	"net"
 	"os"
-	"path/filepath"
-	"strconv"
+	// "path/filepath"
+	// "strconv"
 	"strings"
 )
-
-const BUFFERSIZE = 1024
 
 type Client struct {
 	socket net.Conn
@@ -78,20 +76,12 @@ func (g *ReceiveCommand) Run() error {
 		}
 		client := &Client{socket: connection}
 		go client.receive()
-		// go receiveFile(connection)
 
 		var input string
 		fmt.Scanln(&input)
 	}
 	if g.channel == "2" {
-		connection, err := net.Dial("tcp", "localhost:3000")
-		if err != nil {
-			panic(err)
-		}
-		defer connection.Close()
 
-		client := &Client{socket: connection}
-		go client.receive()
 
 		var input string
 		fmt.Scanln(&input)
@@ -156,7 +146,6 @@ func (client *Client) receive() {
 	for {
 		message := make([]byte, 4096)
 		length, err := client.socket.Read(message)
-		receiveFile(client.socket)
 		if err != nil {
 			client.socket.Close()
 			break
@@ -165,40 +154,4 @@ func (client *Client) receive() {
 			fmt.Println("RECEIVED: " + string(message))
 		}
 	}
-}
-
-func receiveFile(con net.Conn) {
-	// connection, err := net.Dial("tcp", "localhost:3000")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer connection.Close()
-	fmt.Println("Connected to server, start receiving the file name and file size")
-	bufferFileName := make([]byte, 64)
-	bufferFileSize := make([]byte, 10)
-
-	con.Read(bufferFileSize)
-	fileSize, _ := strconv.ParseInt(strings.Trim(string(bufferFileSize), ":"), 10, 64)
-
-	con.Read(bufferFileName)
-	fileName := strings.Trim(string(bufferFileName), ":")
-	path := filepath.Join("./file/", fileName)
-	newFile, err := os.Create(path)
-
-	if err != nil {
-		panic(err)
-	}
-	defer newFile.Close()
-	var receivedBytes int64
-
-	for {
-		if (fileSize - receivedBytes) < BUFFERSIZE {
-			io.CopyN(newFile, con, (fileSize - receivedBytes))
-			con.Read(make([]byte, (receivedBytes+BUFFERSIZE)-fileSize))
-			break
-		}
-		io.CopyN(newFile, con, BUFFERSIZE)
-		receivedBytes += BUFFERSIZE
-	}
-	fmt.Println("Received file completely!")
 }
