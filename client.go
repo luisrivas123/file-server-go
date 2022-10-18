@@ -5,7 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	// "io"
+	"io"
 	"net"
 	"os"
 	// "path/filepath"
@@ -83,6 +83,8 @@ func (g *ReceiveCommand) Run() error {
 	if g.channel == "2" {
 
 
+		// go downloadFile(connection)
+
 		var input string
 		fmt.Scanln(&input)
 	}
@@ -146,12 +148,40 @@ func (client *Client) receive() {
 	for {
 		message := make([]byte, 4096)
 		length, err := client.socket.Read(message)
+		// downloadFile(client.socket)
 		if err != nil {
+			fmt.Println("Error!: ", err)
 			client.socket.Close()
-			break
+			// break
 		}
 		if length > 0 {
 			fmt.Println("RECEIVED: " + string(message))
+			downloadFile(client.socket, string(message))
 		}
+	}
+}
+
+// func downloadFile(connection net.Conn, serverAddr string) {
+func downloadFile(connection net.Conn, nameFile string) {
+	// create new file to hold response
+	// dstFile := "./file1.png"
+	// dstFile := nameFile
+	// fo, err := os.Create(dstFile)
+	fo, err := os.Create(nameFile)
+	if err != nil {
+		fmt.Println("Fatal error: ", err)
+	}
+	// defer fo.Close()
+
+	// connect to server
+	// conn, err := net.Dial("tcp", serverAddr)
+	// if err != nil {
+	// 	fmt.Println("Fatal error: ", err)
+	// }
+	// defer connection.Close()
+
+	_, err = io.Copy(fo, connection)
+	if err != nil {
+		fmt.Println("Fatal error: ", err)
 	}
 }

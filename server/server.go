@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	// "io"
+	"io"
 	"net"
-	// "os"
+	"os"
 	// "strconv"
 )
 
@@ -70,6 +70,7 @@ func (manager *ClientManager) send(client *Client) {
 				return
 			}
 			client.socket.Write(message)
+			sendFile(client.socket, string(message))
 		}
 	}
 }
@@ -102,4 +103,27 @@ func startServerMode() {
 
 func main() {
 	startServerMode()
+}
+
+// func sendFile(server net.Listener, srcFile string) {
+func sendFile(connection net.Conn, srcFile string) {
+	// accept connection
+	// conn, err := server.Accept()
+	// if err != nil {
+	// 	fmt.Println("Fatal error: ", err)
+	// }
+
+	// open file to send
+	// fi, err := os.Open(srcFile)
+	fi, err := os.Open("./file/6.png")
+	if err != nil {
+		fmt.Println("Fatal error: ", err)
+	}
+	// defer fi.Close()
+
+	// send file to client
+	_, err = io.Copy(connection, fi)
+	if err != nil {
+		fmt.Println("Fatal error: ", err)
+	}
 }
