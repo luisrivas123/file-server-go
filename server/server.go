@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 const BUFFERSIZE = 1024
@@ -24,15 +25,13 @@ type Client struct {
 }
 
 func sendFileToClient(connection net.Conn, word []byte) {
-	// var mFile string
-	// b := make([]byte, 100)
 	fmt.Println("A client has connected!")
 	fmt.Println("File send: ", string(word))
-	// mFile, _ = word.ReadString('\n')
-	// word = strings.TrimSpace(word)
-	// defer connection.Close()
 	nameFile := string(word)
-	nameFile = strings.TrimSpace(nameFile)
+	nameFile = strings.TrimFunc(nameFile, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+	fmt.Println("File send: ", nameFile)
 	// file, err := os.Open("6.png")
 	file, err := os.Open(nameFile)
 	if err != nil {
