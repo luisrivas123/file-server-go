@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const BUFFERSIZE = 1024
@@ -22,11 +23,18 @@ type Client struct {
 	data   chan []byte
 }
 
-func sendFileToClient(connection net.Conn, word string) {
+func sendFileToClient(connection net.Conn, word []byte) {
+	// var mFile string
+	// b := make([]byte, 100)
 	fmt.Println("A client has connected!")
-	fmt.Println("File send: ", word)
+	fmt.Println("File send: ", string(word))
+	// mFile, _ = word.ReadString('\n')
+	// word = strings.TrimSpace(word)
 	// defer connection.Close()
-	file, err := os.Open("6.png")
+	nameFile := string(word)
+	nameFile = strings.TrimSpace(nameFile)
+	// file, err := os.Open("6.png")
+	file, err := os.Open(nameFile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -119,7 +127,7 @@ func (manager *ClientManager) send(client *Client) {
 			}
 			client.socket.Write(message)
 			fmt.Println("Client connected")
-			go sendFileToClient(client.socket, string(message))
+			go sendFileToClient(client.socket, []byte(message))
 		}
 	}
 }
