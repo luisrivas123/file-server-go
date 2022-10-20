@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -70,7 +69,7 @@ func (g *SendCommand) Init(args []string) error {
 
 func (g *ReceiveCommand) Run() error {
 	if g.channel == "1" {
-		fmt.Println("Starting client recieve 1...")
+		fmt.Println("Starting client recieve channel 1...")
 		connection, error := net.Dial("tcp", "localhost:3000")
 		if error != nil {
 			fmt.Println(error)
@@ -84,7 +83,7 @@ func (g *ReceiveCommand) Run() error {
 		fmt.Scanln(&input)
 	}
 	if g.channel == "2" {
-		fmt.Println("Starting client recieve 2...")
+		fmt.Println("Starting client recieve channel  2...")
 		connection, err := net.Dial("tcp", "localhost:3001")
 		if err != nil {
 			panic(err)
@@ -97,14 +96,27 @@ func (g *ReceiveCommand) Run() error {
 		var input string
 		fmt.Scanln(&input)
 	}
+	if g.channel == "3" {
+		fmt.Println("Starting client recieve channel  3...")
+		connection, err := net.Dial("tcp", "localhost:3002")
+		if err != nil {
+			panic(err)
+		}
+		defer connection.Close()
 
+		client := &Client{socket: connection}
+		go client.receive()
+
+		var input string
+		fmt.Scanln(&input)
+	}
 	return nil
 
 }
 
 func (g *SendCommand) Run() error {
 	if g.channel == "1" {
-		fmt.Println("Starting client send 1...")
+		fmt.Println("Starting client send channel 1...")
 		connection, error := net.Dial("tcp", "localhost:3000")
 		if error != nil {
 			fmt.Println(error)
@@ -116,8 +128,20 @@ func (g *SendCommand) Run() error {
 		}
 	}
 	if g.channel == "2" {
-		fmt.Println("Starting client send 2...")
+		fmt.Println("Starting client send channel 2...")
 		connection, error := net.Dial("tcp", "localhost:3001")
+		if error != nil {
+			fmt.Println(error)
+		}
+		for {
+			reader := bufio.NewReader(os.Stdin)
+			message, _ := reader.ReadString('\n')
+			connection.Write([]byte(strings.TrimRight(message, "\n")))
+		}
+	}
+	if g.channel == "3" {
+		fmt.Println("Starting client send channel 3...")
+		connection, error := net.Dial("tcp", "localhost:3002")
 		if error != nil {
 			fmt.Println(error)
 		}
@@ -192,8 +216,10 @@ func receiveFile(con net.Conn) {
 
 	con.Read(bufferFileName)
 	fileName := strings.Trim(string(bufferFileName), ":")
-	path := filepath.Join("./file/", fileName)
-	newFile, err := os.Create(path)
+	// path := filepath.Join("./file/", fileName)
+
+	newFile, err := os.Create(fileName)
+	// newFile, err := os.Create(path)
 
 	if err != nil {
 		panic(err)
