@@ -183,11 +183,6 @@ func (client *Client) receive() {
 }
 
 func receiveFile(con net.Conn) {
-	// connection, err := net.Dial("tcp", "localhost:3000")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer connection.Close()
 	fmt.Println("Connected to server, start receiving the file name and file size")
 	bufferFileName := make([]byte, 64)
 	bufferFileSize := make([]byte, 10)

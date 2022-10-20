@@ -197,12 +197,21 @@ func (manager1 *ClientManager1) send1(client1 *Client) {
 }
 
 func startServerMode() {
-	fmt.Println("Starting server...")
+
+	go server1()
+
+	go server2()
+}
+
+func main() {
+	startServerMode()
+	var input string
+	fmt.Scanln(&input)
+}
+
+func server1() {
+	fmt.Println("Starting server 1...")
 	listener, error := net.Listen("tcp", ":3000")
-	if error != nil {
-		fmt.Println(error)
-	}
-	listener1, error := net.Listen("tcp", ":3001")
 	if error != nil {
 		fmt.Println(error)
 	}
@@ -213,14 +222,6 @@ func startServerMode() {
 		unregister: make(chan *Client),
 	}
 	go manager.start()
-	manager1 := ClientManager1{
-		clients:    make(map[*Client]bool),
-		broadcast:  make(chan []byte),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-	}
-	go manager1.start1()
-
 	for {
 		connection, _ := listener.Accept()
 		if error != nil {
@@ -233,6 +234,25 @@ func startServerMode() {
 		go manager.receive(client)
 		go manager.send(client)
 
+	}
+}
+
+func server2() {
+	fmt.Println("Starting server 2...")
+	listener1, error := net.Listen("tcp", ":3001")
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	manager1 := ClientManager1{
+		clients:    make(map[*Client]bool),
+		broadcast:  make(chan []byte),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+	}
+	go manager1.start1()
+
+	for {
 		connection1, _ := listener1.Accept()
 		if error != nil {
 			fmt.Println(error)
@@ -243,10 +263,5 @@ func startServerMode() {
 
 		go manager1.receive1(client1)
 		go manager1.send1(client1)
-
 	}
-}
-
-func main() {
-	startServerMode()
 }
