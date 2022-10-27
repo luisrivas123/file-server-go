@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -19,6 +21,38 @@ var countClientsChannel3 = 0
 var countFilesSendedChannel1 = 0
 var countFilesSendedChannel2 = 0
 var countFilesSendedChannel3 = 0
+
+type jsonConnection struct {
+	ChannelOne   int `json:"ChannelOne"`
+	ChannelTwo   int `json:"ChannelTwo"`
+	ChannelThree int `json:"ChannelThree"`
+}
+
+type allConnections []jsonConnection
+
+var connections = allConnections{
+	{
+		ChannelOne:   countClientsChannel1,
+		ChannelTwo:   countClientsChannel2,
+		ChannelThree: countClientsChannel3,
+	},
+}
+
+type jsonFilesSended struct {
+	FilesSendedChannelOne   int `json:"FilesSendedChannelOne"`
+	FilesSendedChannelTwo   int `json:"FilesSendedChannelTwo"`
+	FilesSendedChannelThree int `json:"FilesSendedChannelThree"`
+}
+
+type allFilesSended []jsonFilesSended
+
+var filesSended = allFilesSended{
+	{
+		FilesSendedChannelOne:   countFilesSendedChannel1,
+		FilesSendedChannelTwo:   countFilesSendedChannel2,
+		FilesSendedChannelThree: countFilesSendedChannel3,
+	},
+}
 
 type ClientManager struct {
 	clients    map[*Client]bool
@@ -210,8 +244,28 @@ func startServerMode() {
 	go channel_3()
 }
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello world")
+	// h := strconv.Itoa(countClientsChannel1)
+	// fmt.Fprintf(w, h)
+	// http.ServeFile(w, r, "index.html")
+}
+
+func getAllConnections(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(connections)
+}
+
+func getAllFilesSended(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(filesSended)
+}
+
 func main() {
 	startServerMode()
+	http.HandleFunc("/", handler)
+	http.HandleFunc("/connections", getAllConnections)
+	http.HandleFunc("/filesSended", getAllFilesSended)
+	http.ListenAndServe(":8000", nil)
+
 	var input string
 	fmt.Scanln(&input)
 }
