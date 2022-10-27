@@ -30,14 +30,6 @@ type jsonConnection struct {
 
 type allConnections []jsonConnection
 
-var connections = allConnections{
-	{
-		ChannelOne:   countClientsChannel1,
-		ChannelTwo:   countClientsChannel2,
-		ChannelThree: countClientsChannel3,
-	},
-}
-
 type jsonFilesSended struct {
 	FilesSendedChannelOne   int `json:"FilesSendedChannelOne"`
 	FilesSendedChannelTwo   int `json:"FilesSendedChannelTwo"`
@@ -45,14 +37,6 @@ type jsonFilesSended struct {
 }
 
 type allFilesSended []jsonFilesSended
-
-var filesSended = allFilesSended{
-	{
-		FilesSendedChannelOne:   countFilesSendedChannel1,
-		FilesSendedChannelTwo:   countFilesSendedChannel2,
-		FilesSendedChannelThree: countFilesSendedChannel3,
-	},
-}
 
 type ClientManager struct {
 	clients    map[*Client]bool
@@ -252,10 +236,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllConnections(w http.ResponseWriter, r *http.Request) {
+	var connections = allConnections{
+		{
+			ChannelOne:   countClientsChannel1,
+			ChannelTwo:   countClientsChannel2,
+			ChannelThree: countClientsChannel3,
+		},
+	}
 	json.NewEncoder(w).Encode(connections)
 }
 
 func getAllFilesSended(w http.ResponseWriter, r *http.Request) {
+	var filesSended = allFilesSended{
+		{
+			FilesSendedChannelOne:   countFilesSendedChannel1,
+			FilesSendedChannelTwo:   countFilesSendedChannel2,
+			FilesSendedChannelThree: countFilesSendedChannel3,
+		},
+	}
 	json.NewEncoder(w).Encode(filesSended)
 }
 
