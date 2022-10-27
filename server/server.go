@@ -16,6 +16,10 @@ var countClientsChannel1 = 0
 var countClientsChannel2 = 0
 var countClientsChannel3 = 0
 
+var countFilesSendedChannel1 = 0
+var countFilesSendedChannel2 = 0
+var countFilesSendedChannel3 = 0
+
 type ClientManager struct {
 	clients    map[*Client]bool
 	broadcast  chan []byte
@@ -91,6 +95,8 @@ func (manager *ClientManager) start1() {
 				// fmt.Println("A connection has terminated!")
 			}
 		case message := <-manager.broadcast:
+			countFilesSendedChannel1++
+			fmt.Println("File sent by channel one, sent: ", countFilesSendedChannel1)
 			for connection := range manager.clients {
 				select {
 				case connection.data <- message:
@@ -120,6 +126,8 @@ func (manager *ClientManager) start2() {
 				// fmt.Println("A connection has terminated!")
 			}
 		case message := <-manager.broadcast:
+			countFilesSendedChannel2++
+			fmt.Println("File sent by channel two, sent: ", countFilesSendedChannel2)
 			for connection := range manager.clients {
 				select {
 				case connection.data <- message:
@@ -149,6 +157,8 @@ func (manager *ClientManager) start3() {
 				// fmt.Println("A connection has terminated!")
 			}
 		case message := <-manager.broadcast:
+			countFilesSendedChannel3++
+			fmt.Println("File sent by channel three, sent: ", countFilesSendedChannel3)
 			for connection := range manager.clients {
 				select {
 				case connection.data <- message:
@@ -188,7 +198,7 @@ func (manager *ClientManager) send(client *Client) {
 			}
 			client.socket.Write(message)
 			// fmt.Println("Client connected")
-			go sendFileToClient(client.socket, []byte(message))
+			sendFileToClient(client.socket, []byte(message))
 		}
 	}
 }
