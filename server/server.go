@@ -228,6 +228,10 @@ func startServerMode() {
 	go channel_3()
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello world")
 	// h := strconv.Itoa(countClientsChannel1)
@@ -236,6 +240,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllConnections(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	var connections = allConnections{
 		{
 			ChannelOne:   countClientsChannel1,
@@ -247,6 +252,7 @@ func getAllConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllFilesSended(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	var filesSended = allFilesSended{
 		{
 			FilesSendedChannelOne:   countFilesSendedChannel1,
