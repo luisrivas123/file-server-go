@@ -258,7 +258,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello world")
 }
 func handlerUpFiles(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "index.html")
+	http.ServeFile(w, r, "./public/upload-files/index.html")
 }
 
 func getAllConnections(w http.ResponseWriter, r *http.Request) {
