@@ -287,7 +287,8 @@ func getAllFilesSended(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	startServerMode()
-	http.HandleFunc("/", handler)
+	http.Handle("/", http.FileServer(http.Dir("./public")))
+	// http.HandleFunc("/", handler)
 	http.HandleFunc("/upFiles", handlerUpFiles)
 	http.HandleFunc("/files", upLoader)
 	http.HandleFunc("/connections", getAllConnections)
