@@ -232,11 +232,33 @@ func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
+func upLoader(w http.ResponseWriter, r *http.Request) {
+	// Metodo que lee los archivos como parte de la petición
+	r.ParseMultipartForm(2000)
+	// Se llama a formFile sobre el objeto request
+	file, fileInfo, err := r.FormFile("archivo")
+
+	// Guarda el archivo
+	f, err := os.OpenFile("./files/"+fileInfo.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Cierra el archivo
+	defer f.Close()
+	// copia el archivo recibido
+	io.Copy(f, file)
+
+	fmt.Fprintf(w, fileInfo.Filename)
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello world")
-	// h := strconv.Itoa(countClientsChannel1)
-	// fmt.Fprintf(w, h)
-	// http.ServeFile(w, r, "index.html")
+}
+func handlerUpFiles(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "index.html")
 }
 
 func getAllConnections(w http.ResponseWriter, r *http.Request) {
@@ -266,6 +288,8 @@ func getAllFilesSended(w http.ResponseWriter, r *http.Request) {
 func main() {
 	startServerMode()
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/upFiles", handlerUpFiles)
+	http.HandleFunc("/files", upLoader)
 	http.HandleFunc("/connections", getAllConnections)
 	http.HandleFunc("/filesSended", getAllFilesSended)
 	http.ListenAndServe(":8000", nil)
